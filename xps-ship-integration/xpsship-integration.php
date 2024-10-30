@@ -2,7 +2,7 @@
 /**
 Plugin Name: XPS Ship Integration
 Description: The XPS Ship integration, a free integration for WooCommerce merchants, is the only integration that gives you all the necessary functionality for shipping
-Version: 2.0.7
+Version: 2.0.9
 Author: XPS Ship - Descartes
 WC requires at least: 2.4.8
 WC tested up to: 8.5.1
@@ -120,29 +120,163 @@ $allowed_html = array(
 	'h2'       => array(),
 	'hr'       => array(),
 );
+
 // Add more allowed styles.
 add_filter(
 	'safe_style_css',
 	function ( $styles ) {
 		$styles = array(
-			'display',
-			'text-align',
-			'white-space',
-			'width',
-			'font-family',
-			'color',
+			'background',
+			'background-color',
+			'background-image',
+			'background-position',
+			'background-repeat',
+			'background-size',
+			'background-attachment',
+			'background-blend-mode',
+
 			'border',
+			'border-radius',
+			'border-width',
+			'border-color',
+			'border-style',
+			'border-right',
+			'border-right-color',
+			'border-right-style',
+			'border-right-width',
+			'border-bottom',
+			'border-bottom-color',
+			'border-bottom-left-radius',
+			'border-bottom-right-radius',
+			'border-bottom-style',
+			'border-bottom-width',
+			'border-bottom-right-radius',
+			'border-bottom-left-radius',
+			'border-left',
+			'border-left-color',
+			'border-left-style',
+			'border-left-width',
+			'border-top',
+			'border-top-color',
+			'border-top-left-radius',
+			'border-top-right-radius',
+			'border-top-style',
+			'border-top-width',
+			'border-top-left-radius',
+			'border-top-right-radius',
+
+			'border-spacing',
+			'border-collapse',
+			'caption-side',
+
+			'columns',
+			'column-count',
+			'column-fill',
+			'column-gap',
+			'column-rule',
+			'column-span',
+			'column-width',
+
+			'color',
+			'filter',
+			'font',
+			'font-family',
+			'font-size',
+			'font-style',
+			'font-variant',
+			'font-weight',
+			'letter-spacing',
+			'line-height',
+			'text-align',
+			'text-decoration',
+			'text-indent',
+			'text-transform',
+
+			'height',
+			'min-height',
+			'max-height',
+
+			'width',
+			'min-width',
+			'max-width',
+
+			'margin',
+			'margin-right',
+			'margin-bottom',
+			'margin-left',
+			'margin-top',
+			'margin-block-start',
+			'margin-block-end',
+			'margin-inline-start',
+			'margin-inline-end',
+
 			'padding',
+			'padding-right',
 			'padding-bottom',
 			'padding-left',
-			'padding-right',
 			'padding-top',
+			'padding-block-start',
+			'padding-block-end',
+			'padding-inline-start',
+			'padding-inline-end',
+
+			'flex',
+			'flex-basis',
+			'flex-direction',
+			'flex-flow',
+			'flex-grow',
+			'flex-shrink',
+			'flex-wrap',
+
+			'gap',
+			'column-gap',
+			'row-gap',
+
+			'grid-template-columns',
+			'grid-auto-columns',
+			'grid-column-start',
+			'grid-column-end',
+			'grid-column',
+			'grid-column-gap',
+			'grid-template-rows',
+			'grid-auto-rows',
+			'grid-row-start',
+			'grid-row-end',
+			'grid-row',
+			'grid-row-gap',
+			'grid-gap',
+
+			'justify-content',
+			'justify-items',
+			'justify-self',
+			'align-content',
+			'align-items',
+			'align-self',
+
+			'clear',
+			'cursor',
+			'direction',
+			'float',
+			'list-style-type',
+			'object-fit',
+			'object-position',
+			'overflow',
+			'vertical-align',
+			'writing-mode',
+
+			'position',
+			'top',
+			'right',
+			'bottom',
+			'left',
+			'z-index',
+			'box-shadow',
+			'aspect-ratio',
+			'container-type',
 		);
 		return $styles;
 	}
 );
-
-
 
 add_action(
 	'before_woocommerce_init',
@@ -372,6 +506,13 @@ function transform_woocommerce_order_into_webship_order( $order ) {
 
 	$order_items = $order->get_items() + $order->get_items( 'fee' );
 	foreach ( $order_items as $item_id => $item ) {
+		/** Start hook
+		 * adds multi-site support
+		 * https://wpglobalcart.com/documentation/loop-though-the-cart-items/
+		 *
+		 * @since <2.0.6>
+		*/
+		do_action( 'woocommerce/cart_loop/start', $item );
 		if ( $on_woocommerce_v3_or_newer ) {
 			$product = is_callable( array( $item, 'get_product' ) ) ? $item->get_product() : null;
 		} else {
@@ -404,7 +545,8 @@ function transform_woocommerce_order_into_webship_order( $order ) {
 
 		if ( $product && $product->needs_shipping() ) {
 			$image_id = $product->get_image_id();
-			$img_url  = $image_id ? current( wp_get_attachment_image_src( $image_id, 'shop_thumbnail' ) ) : '';
+			$image_src = wp_get_attachment_image_src( $image_id, 'shop_thumbnail' );
+			$img_url = $image_id && is_array($image_src) ? current( $image_src ) : '';
 
 			if ( method_exists( $product, 'get_id' ) ) {
 				$product_id = $product->get_id();
@@ -467,6 +609,12 @@ function transform_woocommerce_order_into_webship_order( $order ) {
 		}
 
 		array_push( $webship_order['items'], $webship_item );
+		/** End of hook adds multi-site support
+		 * https://wpglobalcart.com/documentation/loop-though-the-cart-items/
+		 *
+		 * @since <2.0.6>
+		*/
+		do_action( 'woocommerce/cart_loop/end', $item );
 	}
 
 	if ( ! $order_has_atleast_one_item ) {

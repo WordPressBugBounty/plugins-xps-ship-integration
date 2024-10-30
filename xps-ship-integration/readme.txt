@@ -5,8 +5,8 @@ Plugin Name: XPS Ship Integration
 Tags: XPS, shipping, stamps, USPS, woocommerce, UPS, Fedex, shipment, DHL, royal-mail, tracking number, tnt, mail, shipping quotes
 Author URI: https://xpsshipper.com
 Requires at least: 5.4
-Tested up to: 6.5.3
-Stable tag: 2.0.7
+Tested up to: 6.7
+Stable tag: 2.0.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,15 @@ Visit us at XPSShip.com to learn more information
 5. A new tab will open and the connection will be established between XPS Ship and your WooCommerce store
 
 == Changelog ==
+= 2.0.9 =
+Update get image url for PHP 8.2 compatibility
+
+= 2.0.8 =
+Remove CSS filter breaking some websites using our plugin
+
+= 2.0.6 =
+Multi-site support
+
 = 2.0.5 =
 Fix USPS tracking link
 
