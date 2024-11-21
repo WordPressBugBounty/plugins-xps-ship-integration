@@ -172,7 +172,7 @@ class Webship_Integrated_Quoting_Method extends WC_Shipping_Method {
 						'currency'            => get_woocommerce_currency(),
 						'weightUnit'          => $weight_unit,
 						'dimUnit'             => $dim_unit,
-						'pluginVersionNumber' => '2.0.9',
+						'pluginVersionNumber' => '2.1.0',
 					)
 				),
 			)

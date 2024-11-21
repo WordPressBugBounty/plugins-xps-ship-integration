@@ -2,7 +2,7 @@
 /**
 Plugin Name: XPS Ship Integration
 Description: The XPS Ship integration, a free integration for WooCommerce merchants, is the only integration that gives you all the necessary functionality for shipping
-Version: 2.0.9
+Version: 2.1.0
 Author: XPS Ship - Descartes
 WC requires at least: 2.4.8
 WC tested up to: 8.5.1

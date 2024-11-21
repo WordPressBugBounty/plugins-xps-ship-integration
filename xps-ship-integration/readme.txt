@@ -6,7 +6,7 @@ Tags: XPS, shipping, stamps, USPS, woocommerce, UPS, Fedex, shipment, DHL, royal
 Author URI: https://xpsshipper.com
 Requires at least: 5.4
 Tested up to: 6.7
-Stable tag: 2.0.9
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Visit us at XPSShip.com to learn more information
 5. A new tab will open and the connection will be established between XPS Ship and your WooCommerce store
 
 == Changelog ==
+= 2.1.0 =
+Updated previous versions
+
 = 2.0.9 =
 Update get image url for PHP 8.2 compatibility
 
