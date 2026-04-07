@@ -2,7 +2,7 @@
 /**
 Plugin Name: XPS Ship Integration
 Description: The XPS Ship integration, a free integration for WooCommerce merchants, is the only integration that gives you all the necessary functionality for shipping
-Version: 2.0.9
+Version: 2.0.10
 Author: XPS Ship - Descartes
 WC requires at least: 2.4.8
 WC tested up to: 8.5.1
@@ -338,6 +338,7 @@ function webship_woocommerce_init() {
 		 * @param string $original_order_id is the order id.
 		 * @param string $renewal_order_id is the renewal order id.
 		 */
+		if ( ! function_exists( 'do_not_copy_meta_data' ) ) {
 		function do_not_copy_meta_data( $order_meta_query, $original_order_id, $renewal_order_id ) {
 
 				$order_meta_query .= ' AND `meta_key` NOT IN ('
@@ -353,6 +354,7 @@ function webship_woocommerce_init() {
 
 			return $order_meta_query;
 		}
+		} // end function_exists do_not_copy_meta_data
 
 		// This must be declared in global scope here for the shipment tracking box to display in edit orders.
 		$webship_shipment_tracking = new Webship_Shipment_Tracking();
@@ -369,6 +371,7 @@ function webship_woocommerce_init() {
 		 *                        - tracking_number          : The tracking number.
 		 *                        - date_shipped             : The date shipped.
 		 */
+		if ( ! function_exists( 'add_tracking_entry' ) ) {
 		function add_tracking_entry( $order_id, $params ) {
 			$webship_shipment_tracking = new Webship_Shipment_Tracking();
 
@@ -383,6 +386,7 @@ function webship_woocommerce_init() {
 				)
 			);
 		}
+		} // end function_exists add_tracking_entry
 	}
 }
 
@@ -1022,40 +1026,44 @@ if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 	 * Description - method that knows how to quote shipping rates from Webship.
 	 * This function uses class-wc-webship-quoting-method.php.
 	 */
+	if ( ! function_exists( 'webship_integrated_quoting_shipping_method' ) ) {
 	function webship_integrated_quoting_shipping_method() {
+		add_filter( 'woocommerce_shipping_methods', 'add_webship_integrated_quoting_shipping_method' );
+		add_action( 'woocommerce_settings_saved', 'check_for_admin_fields' );
+	}
+	} // end function_exists webship_integrated_quoting_shipping_method
 
-			add_filter( 'woocommerce_shipping_methods', 'add_webship_integrated_qutoing_shipping_method' );
+	/**
+	 * Description - add webship integrated quoting shipping method.
+	 *
+	 * @param array $methods - list of methods to embed.
+	 */
+	if ( ! function_exists( 'add_webship_integrated_quoting_shipping_method' ) ) {
+	function add_webship_integrated_quoting_shipping_method( $methods ) {
+		$methods[] = 'Webship_Integrated_Quoting_Method';
+		return $methods;
+	}
+	} // end function_exists add_webship_integrated_quoting_shipping_method
 
-			/**
-			 * Description - add webship integrated quoting shipping method.
-			 *
-			 * @param string $methods - list of methods to embed.
-			 */
-		function add_webship_integrated_qutoing_shipping_method( $methods ) {
-			$methods[] = 'Webship_Integrated_Quoting_Method';
-			return $methods;
+	/**
+	 * Description - check if admin fields are present.
+	 *
+	 * @param string $args - list of arguments.
+	 */
+	if ( ! function_exists( 'check_for_admin_fields' ) ) {
+	function check_for_admin_fields( $args ) {
+		$webship_integrated_quoting_method = new Webship_Integrated_Quoting_Method();
+
+		$url     = (string) $GLOBALS['client_info']['clientUrl'] ? (string) $GLOBALS['client_info']['clientUrl'] : $webship_integrated_quoting_method->settings['url'];
+		$api_key = (string) $webship_integrated_quoting_method->settings['apiKey'];
+
+		if ( empty( $url ) ) {
+			WC_Admin_Settings::add_error( "{$GLOBALS['client_info']['clientName']} URL is a required field" );
 		}
 
-			add_action( 'woocommerce_settings_saved', 'check_for_admin_fields' );
-
-			/**
-			 * Description - check if admin fields are present.
-			 *
-			 * @param string $args - list of arguments.
-			 */
-		function check_for_admin_fields( $args ) {
-			$webship_integrated_quoting_method = new Webship_Integrated_Quoting_Method();
-
-			$url     = (string) $GLOBALS['client_info']['clientUrl'] ? (string) $GLOBALS['client_info']['clientUrl'] : $webship_integrated_quoting_method->settings['url'];
-			$api_key = (string) $webship_integrated_quoting_method->settings['apiKey'];
-
-			if ( empty( $url ) ) {
-				WC_Admin_Settings::add_error( "{$GLOBALS['client_info']['clientName']} URL is a required field" );
-			}
-
-			if ( empty( $api_key ) ) {
-				WC_Admin_Settings::add_error( 'API Key is a required field' );
-			}
+		if ( empty( $api_key ) ) {
+			WC_Admin_Settings::add_error( 'API Key is a required field' );
 		}
 	}
+	} // end function_exists check_for_admin_fields
 }
