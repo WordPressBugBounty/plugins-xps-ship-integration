@@ -35,11 +35,11 @@ class WC_Webship_Integration extends WC_Integration {
 		// Translators: put the client name in as %s.
 		$this->method_title = esc_attr( $GLOBALS['client_info']['clientName'] );
 		// Translators: put the client name in as %s.
-		$this->method_description = esc_attr( sprintf( __( '%s allows you ship through numerous carriers', 'woocommerce-webship' ), $GLOBALS['client_info']['clientName'] ) );
+		$this->method_description = esc_attr( sprintf( __( '%s allows you to ship through numerous carriers', 'xpsship-integration' ), $GLOBALS['client_info']['clientName'] ) );
 
 		if ( ! get_option( 'woocommerce_webship_api_key', false ) ) {
 			// generate an api key.
-			$to_hash = get_current_user_id() . gmdate( 'U' ) . mt_rand();
+			$to_hash = get_current_user_id() . gmdate( 'U' ) . wp_rand();
 			$key     = hash_hmac( 'md5', $to_hash, wp_hash( $to_hash ) );
 
 			update_option( 'woocommerce_webship_api_key', $key );
@@ -56,15 +56,15 @@ class WC_Webship_Integration extends WC_Integration {
 		add_action( 'woocommerce_update_options_integration_webship', array( $this, 'process_admin_options' ) );
 
 		if ( webship_client_has_dedicated_plugin() ) {
-			if ( ! function_exists( 'add_external_link_admin_submenu' ) ) {
+			if ( ! function_exists( 'xpsship_add_admin_submenu' ) ) {
 				/**
 				 * Description - Add a link to the admin submenu
 				 */
-				function add_external_link_admin_submenu() {
+				function xpsship_add_admin_submenu() {
 					$permalink = admin_url( 'admin.php' ) . '?page=wc-settings&tab=integration&section=webship';
 					add_submenu_page( 'woocommerce', $GLOBALS['client_info']['clientName'], $GLOBALS['client_info']['clientName'], 'manage_options', $permalink, '' );
 				}
-				add_action( 'admin_menu', 'add_external_link_admin_submenu' );
+				add_action( 'admin_menu', 'xpsship_add_admin_submenu' );
 			}
 
 			$dismissed_setup_notice = get_user_meta( get_current_user_id(), 'dismissed_webship-setup_notice' );
@@ -100,17 +100,13 @@ class WC_Webship_Integration extends WC_Integration {
 
 		$create_integration_url = esc_url( "{$GLOBALS['client_info']['clientUrl']}/{$GLOBALS['client_info']['buildNumber']}/#/settings/integrations/new/woocommerce?woocommerceApiKey={$interpolatable_api_key_string}&woocommerceSite_url=$wordpress_url" );
 
-		$html = <<<EOF
-					<div id="message" class="updated woocommerce-message webship-setup" style="padding:20px;">
-						<img alt="{$GLOBALS['client_info']['clientName']}" title="{$GLOBALS['client_info']['clientName']}" src="{$logo_url}" style="width:140px" />
-						<a class="woocommerce-message-close notice-dismiss" href="{$hide_notice_url}">Dismiss</a>
-						<p>To start printing shipping labels with {$GLOBALS['client_info']['clientName']} navigate to <a class="external-link" href="$create_integration_url" target="_blank">{$GLOBALS['client_info']['clientUrl']}</a> and log in or sign up for a new account.</p>
-
-						<p>After logging in, configure your WooCommerce integration to initiate communication between {$GLOBALS['client_info']['clientName']} and WooCommerce.</p>
-
-						<p>Once you've connected your integrations, you can begin booking shipments for those orders</p>
-					</div>
-EOF;
+		$html = '<div id="message" class="updated woocommerce-message webship-setup" style="padding:20px;">'
+			. '<img alt="' . esc_attr( $GLOBALS['client_info']['clientName'] ) . '" title="' . esc_attr( $GLOBALS['client_info']['clientName'] ) . '" src="' . $logo_url . '" style="width:140px" />'
+			. '<a class="woocommerce-message-close notice-dismiss" href="' . $hide_notice_url . '">Dismiss</a>'
+			. '<p>To start printing shipping labels with ' . esc_html( $GLOBALS['client_info']['clientName'] ) . ' navigate to <a class="external-link" href="' . $create_integration_url . '" target="_blank" rel="noopener noreferrer">' . esc_html( $GLOBALS['client_info']['clientUrl'] ) . '</a> and log in or sign up for a new account.</p>'
+			. '<p>After logging in, configure your WooCommerce integration to initiate communication between ' . esc_html( $GLOBALS['client_info']['clientName'] ) . ' and WooCommerce.</p>'
+			. '<p>Once you\'ve connected your integrations, you can begin booking shipments for those orders</p>'
+			. '</div>';
 
 		echo wp_kses( $html, $GLOBALS['allowed_html'] );
 	}
@@ -128,22 +124,16 @@ EOF;
 		$successful_connection_html                   = '';
 		if ( $last_request_received_from_webship_timestamp ) {
 			$readable_date              = gmdate( 'F j, Y, g:i a', $last_request_received_from_webship_timestamp );
-			$successful_connection_html = <<<EOF
-						<div id="connected-message" class="notice updated" style="padding-bottom: 20px; padding-left: 20px;">
-							<h2><span class="dashicons dashicons-yes"></span> Connection Successful</h2>
-							{$GLOBALS['client_info']['clientName']} was able to successfully retrieve your WooCommerce orders on $readable_date
-						</div>
-					EOF;
+			$successful_connection_html = '<div id="connected-message" class="notice updated" style="padding-bottom: 20px; padding-left: 20px;">'
+				. '<h2><span class="dashicons dashicons-yes"></span> Connection Successful</h2>'
+				. esc_html( $GLOBALS['client_info']['clientName'] ) . ' was able to successfully retrieve your WooCommerce orders on ' . esc_html( $readable_date )
+				. '</div>';
 		}
 
 		echo wp_kses(
-			<<<EOF
-					$successful_connection_html
-
-					<h2>{$GLOBALS['client_info']['clientName']} Plugin</h2>
-
-					<table class="form-table">
-					EOF,
+			$successful_connection_html
+			. '<h2>' . esc_html( $GLOBALS['client_info']['clientName'] ) . ' Plugin</h2>'
+			. '<table class="form-table">',
 			$GLOBALS['allowed_html']
 		);
 		$this->generate_settings_html();
@@ -159,50 +149,33 @@ EOF;
 
 				$go_to_webship_href = esc_url( "{$GLOBALS['client_info']['clientUrl']}/{$GLOBALS['client_info']['buildNumber']}/#/ship" );
 
-				$go_to_webship_html = <<<EOF
-							<a class="external-link button button-primary" href="{$go_to_webship_href}">
-								Start Shipping on <b>{$GLOBALS['client_info']['clientName']}</b>
-							</a>
-EOF;
+				$go_to_webship_html = '<a class="external-link button button-primary" href="' . $go_to_webship_href . '">'
+					. 'Start Shipping on <b>' . esc_html( $GLOBALS['client_info']['clientName'] ) . '</b>'
+					. '</a>';
 			} else {
 				$redirect_to = urlencode( "{$GLOBALS['client_info']['clientUrl']}/{$GLOBALS['client_info']['buildNumber']}/#/settings/integrations/new/woocommerce?woocommerceApiKey=$interpolatable_api_key_string&woocommerceSite_url=$wordpress_url" );
 				$connect_url = esc_url( "{$GLOBALS['client_info']['clientUrl']}/{$GLOBALS['client_info']['buildNumber']}/signup/114?redirectTo=$redirect_to" );
 			}
 
 			echo wp_kses(
-				<<<EOF
-							<tr valign="top">
-								<th scope="row" class="titledesc">
-									Connect
-								</th>
-								<td class="forminp">
-									<fieldset>
-										$go_to_webship_html
-										<a class="external-link button $button_class" href="$connect_url">
-											$button_text my WooCommerce Store to {$GLOBALS['client_info']['clientName']}
-										</a>
-
-										<p class="description">Click the "$button_text" button to signup for a new account or login to {$GLOBALS['client_info']['clientName']}. Once you're logged in, your WooCommerce store will automatically be connected to {$GLOBALS['client_info']['clientName']} and orders will automatically start to appear</p>
-									</fieldset>
-								</td>
-							</tr>
-						EOF,
+				'<tr valign="top">'
+				. '<th scope="row" class="titledesc">Connect</th>'
+				. '<td class="forminp"><fieldset>'
+				. $go_to_webship_html
+				. '<a class="external-link button ' . esc_attr( $button_class ) . '" href="' . esc_url( $connect_url ) . '">'
+				. esc_html( $button_text ) . ' my WooCommerce Store to ' . esc_html( $GLOBALS['client_info']['clientName'] )
+				. '</a>'
+				. '<p class="description">Click the "' . esc_html( $button_text ) . '" button to signup for a new account or login to ' . esc_html( $GLOBALS['client_info']['clientName'] ) . '. Once you\'re logged in, your WooCommerce store will automatically be connected to ' . esc_html( $GLOBALS['client_info']['clientName'] ) . ' and orders will automatically start to appear</p>'
+				. '</fieldset></td>'
+				. '</tr>',
 				$GLOBALS['allowed_html']
 			);
 		}
 
 		echo wp_kses(
-			<<<EOF
-							<tr>
-								<td></td>
-								<td><hr /></td>
-							</tr>
-							<tr>
-								<th></th>
-								<td><i>Enable and configure live shipping rates for your customers during checkout from {$GLOBALS['client_info']['clientName']} on the <a href="$permalink">integrated quoting settings page</a></i></td>
-							</tr>
-						</table>
-					EOF,
+			'<tr><td></td><td><hr /></td></tr>'
+			. '<tr><th></th><td><i>Enable and configure live shipping rates for your customers during checkout from ' . esc_html( $GLOBALS['client_info']['clientName'] ) . ' on the <a href="' . $permalink . '">integrated quoting settings page</a></i></td></tr>'
+			. '</table>',
 			$GLOBALS['allowed_html']
 		);
 	}
@@ -215,13 +188,13 @@ EOF;
 
 		if ( ! webship_client_has_dedicated_plugin() ) {
 			$form_fields['apiKey'] = array(
-				'title'             => esc_html( __( 'API Key', 'woocommerce-webship' ) ),
+				'title'             => esc_html( __( 'API Key', 'xpsship-integration' ) ),
 				// Translators: stick the clientName in the text.
-				'description'       => esc_html( sprintf( __( 'Copy this text and paste it into the corresponding field on your WooCommerce settings page within %s', 'woocommerce-webship' ), $GLOBALS['client_info']['clientName'] ) ),
+				'description'       => esc_html( sprintf( __( 'Copy this text and paste it into the corresponding field on your WooCommerce settings page within %s', 'xpsship-integration' ), $GLOBALS['client_info']['clientName'] ) ),
 				'default'           => '',
 				'type'              => 'text',
 				// Translators: Stick the clientName in the text.
-				'desc_tip'          => esc_attr( sprintf( __( 'This is the <code>API Key</code> we generated for you in WooCommerce that allows %s to retrieve and upate orders', 'woocommerce-webship' ), $GLOBALS['client_info']['clientName'] ) ),
+				'desc_tip'          => esc_attr( sprintf( __( 'This is the <code>API Key</code> we generated for you in WooCommerce that allows %s to retrieve and update orders', 'xpsship-integration' ), $GLOBALS['client_info']['clientName'] ) ),
 				'custom_attributes' => array(
 					'readonly' => 'readonly',
 				),

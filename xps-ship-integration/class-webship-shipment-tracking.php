@@ -55,9 +55,9 @@ class Webship_Shipment_Tracking {
 
 		// Prevent data being copied to subscriptions.
 		if ( null !== $woocommerce_subscription_plugin_version && version_compare( $woocommerce_subscription_plugin_version, '2.0.0', '>=' ) ) {
-			add_filter( 'wcs_renewal_order_meta_query', 'do_not_copy_meta_data', 10, 4 );
+			add_filter( 'wcs_renewal_order_meta_query', 'xpsship_do_not_copy_meta_data', 10, 4 );
 		} else {
-			add_filter( 'woocommerce_subscriptions_renewal_order_meta_query', 'do_not_copy_meta_data', 10, 4 );
+			add_filter( 'woocommerce_subscriptions_renewal_order_meta_query', 'xpsship_do_not_copy_meta_data', 10, 4 );
 		}
 	}
 	/**
@@ -75,9 +75,9 @@ class Webship_Shipment_Tracking {
 			<table class="shop_table shop_table_responsive my_account_tracking">
 				<thead>
 					<tr>
-						<th class="tracking-provider"><span class="nobr"><?php esc_html( __( 'Provider', 'webship-shipment-tracking' ) ); ?></span></th>
-						<th class="tracking-number"><span class="nobr"><?php esc_html( __( 'Tracking Number', 'webship-shipment-tracking' ) ); ?></span></th>
-						<th class="date-shipped"><span class="nobr"><?php esc_html( __( 'Date', 'webship-shipment-tracking' ) ); ?></span></th>
+						<th class="tracking-provider"><span class="nobr"><?php esc_html( __( 'Provider', 'xpsship-integration' ) ); ?></span></th>
+						<th class="tracking-number"><span class="nobr"><?php esc_html( __( 'Tracking Number', 'xpsship-integration' ) ); ?></span></th>
+						<th class="date-shipped"><span class="nobr"><?php esc_html( __( 'Date', 'xpsship-integration' ) ); ?></span></th>
 						<th class="order-actions">&nbsp;</th>
 					</tr>
 				</thead>
@@ -86,17 +86,17 @@ class Webship_Shipment_Tracking {
 				foreach ( $tracking_entries as $tracking_entry ) {
 					?>
 					<tr class="tracking">
-						<td class="tracking-provider" data-title="<?php esc_html( __( 'Provider', 'webship-shipment-tracking' ) ); ?>">
+						<td class="tracking-provider" data-title="<?php esc_html( __( 'Provider', 'xpsship-integration' ) ); ?>">
 							<?php echo esc_html( $this->get_formatted_shipping_provider( $tracking_entry['tracking_provider'] ) ? $this->get_formatted_shipping_provider( $tracking_entry['tracking_provider'] ) : $tracking_entry['custom_tracking_provider'] ); ?>
 						</td>
-						<td class="tracking-number" data-title="<?php esc_html( __( 'Tracking Number', 'webship-shipment-tracking' ) ); ?>">
+						<td class="tracking-number" data-title="<?php esc_html( __( 'Tracking Number', 'xpsship-integration' ) ); ?>">
 							<?php echo esc_html( $tracking_entry['tracking_number'] ); ?>
 						</td>
-						<td class="date-shipped" data-title="<?php esc_html( __( 'Status', 'webship-shipment-tracking' ) ); ?>" style="text-align:left; white-space:nowrap;">
+						<td class="date-shipped" data-title="<?php esc_html( __( 'Status', 'xpsship-integration' ) ); ?>" style="text-align:left; white-space:nowrap;">
 							<time datetime="<?php echo esc_attr( gmdate( 'Y-m-d', $tracking_entry['date_shipped'] ) ); ?>" title="<?php echo esc_attr( gmdate( 'Y-m-d', $tracking_entry['date_shipped'] ) ); ?>"><?php echo esc_attr( date_i18n( get_option( 'date_format' ), $tracking_entry['date_shipped'] ) ); ?></time>
 						</td>
 						<td class="order-actions" style="text-align: center;">
-								<a href="<?php echo esc_url( $this->get_formatted_tracking_link( $tracking_entry['postcode'], $tracking_entry['tracking_provider'], $tracking_entry['tracking_number'] ) ? $this->get_formatted_tracking_link( $tracking_entry['postcode'], $tracking_entry['tracking_provider'], $tracking_entry['tracking_number'] ) : $tracking_entry['custom_tracking_link'] ); ?>" target="_blank" class="button"><?php esc_html( __( 'Track', 'webship-shipment-tracking' ) ); ?></a>
+								<a href="<?php echo esc_url( $this->get_formatted_tracking_link( $tracking_entry['postcode'], $tracking_entry['tracking_provider'], $tracking_entry['tracking_number'] ) ? $this->get_formatted_tracking_link( $tracking_entry['postcode'], $tracking_entry['tracking_provider'], $tracking_entry['tracking_number'] ) : $tracking_entry['custom_tracking_link'] ); ?>" target="_blank" class="button"><?php esc_html( __( 'Track', 'xpsship-integration' ) ); ?></a>
 						</td>
 					</tr>
 					<?php
@@ -129,7 +129,7 @@ class Webship_Shipment_Tracking {
 					 *
 					 * @since <6.3.1>
 					 */
-					echo esc_attr( apply_filters( 'woocommerce_shipment_tracking_my_orders_title', __( 'TRACKING INFORMATION', 'webship-shipment-tracking' ) ) );
+					echo esc_attr( apply_filters( 'woocommerce_shipment_tracking_my_orders_title', __( 'TRACKING INFORMATION', 'xpsship-integration' ) ) );
 
 					echo "\n";
 
@@ -150,7 +150,7 @@ class Webship_Shipment_Tracking {
 					 *
 					 * @since <6.3.1>
 					 */
-					echo esc_attr( apply_filters( 'woocommerce_shipment_tracking_my_orders_title', __( 'Tracking Information', 'webship-shipment-tracking' ) ) );
+					echo esc_attr( apply_filters( 'woocommerce_shipment_tracking_my_orders_title', __( 'Tracking Information', 'xpsship-integration' ) ) );
 					?>
 					</h2>
 
@@ -158,9 +158,9 @@ class Webship_Shipment_Tracking {
 
 							<thead>
 								<tr>
-									<th class="tracking-provider" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;"><?php echo esc_html( __( 'Provider', 'webship-shipment-tracking' ) ); ?></th>
-									<th class="tracking-number" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;"><?php echo esc_html( __( 'Tracking Number', 'webship-shipment-tracking' ) ); ?></th>
-									<th class="date-shipped" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;"><?php echo esc_html( __( 'Date', 'webship-shipment-tracking' ) ); ?></th>
+									<th class="tracking-provider" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;"><?php echo esc_html( __( 'Provider', 'xpsship-integration' ) ); ?></th>
+									<th class="tracking-number" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;"><?php echo esc_html( __( 'Tracking Number', 'xpsship-integration' ) ); ?></th>
+									<th class="date-shipped" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;"><?php echo esc_html( __( 'Date', 'xpsship-integration' ) ); ?></th>
 									<th class="order-actions" scope="col" class="td" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">&nbsp;</th>
 								</tr>
 							</thead>
@@ -172,17 +172,17 @@ class Webship_Shipment_Tracking {
 								$formatted_tracking_link = $this->get_formatted_tracking_link( $tracking_entry['postcode'], $tracking_entry['tracking_provider'], $tracking_entry['tracking_number'] ) ? $this->get_formatted_tracking_link( $tracking_entry['postcode'], $tracking_entry['tracking_provider'], $tracking_entry['tracking_number'] ) : $tracking_entry['custom_tracking_link'];
 								?>
 								<tr class="tracking">
-									<td class="tracking-provider" data-title="<?php echo esc_html( __( 'Provider', 'webship-shipment-tracking' ) ); ?>" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
+									<td class="tracking-provider" data-title="<?php echo esc_html( __( 'Provider', 'xpsship-integration' ) ); ?>" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
 										<?php echo esc_html( $this->get_formatted_shipping_provider( $tracking_entry['tracking_provider'] ) ? $this->get_formatted_shipping_provider( $tracking_entry['tracking_provider'] ) : $tracking_entry['custom_tracking_provider'] ); ?>
 									</td>
-									<td class="tracking-number" data-title="<?php echo esc_html( __( 'Tracking Number', 'webship-shipment-tracking' ) ); ?>" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
+									<td class="tracking-number" data-title="<?php echo esc_html( __( 'Tracking Number', 'xpsship-integration' ) ); ?>" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
 										<?php echo esc_html( $tracking_entry['tracking_number'] ); ?>
 									</td>
-									<td class="date-shipped" data-title="<?php echo esc_html( __( 'Status', 'webship-shipment-tracking' ) ); ?>" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
+									<td class="date-shipped" data-title="<?php echo esc_html( __( 'Status', 'xpsship-integration' ) ); ?>" style="text-align: left; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
 										<time datetime="<?php echo esc_attr( gmdate( 'Y-m-d', intval( $tracking_entry['date_shipped'] ) ) ); ?>" title="<?php echo esc_attr( gmdate( 'Y-m-d', intval( $tracking_entry['date_shipped'] ) ) ); ?>"><?php echo esc_attr( date_i18n( get_option( 'date_format' ), $tracking_entry['date_shipped'] ) ); ?></time>
 									</td>
 									<td class="order-actions" style="text-align: center; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; color: #737373; border: 1px solid #e4e4e4; padding: 12px;">
-											<a href="<?php echo esc_url( $formatted_tracking_link ); ?>" target="_blank"><?php echo esc_html( __( 'Track', 'webship-shipment-tracking' ) ); ?></a>
+											<a href="<?php echo esc_url( $formatted_tracking_link ); ?>" target="_blank"><?php echo esc_html( __( 'Track', 'xpsship-integration' ) ); ?></a>
 									</td>
 								</tr>
 								<?php
@@ -266,7 +266,7 @@ class Webship_Shipment_Tracking {
 	 * @param string $columns - the columns to render.
 	 */
 	public function render_shipment_tracking_column_header_in_order_list_view( $columns ) {
-		$columns['shipment_tracking'] = __( 'Shipment Tracking', 'webship' );
+		$columns['shipment_tracking'] = __( 'Shipment Tracking', 'xpsship-integration' );
 		return $columns;
 	}
 
@@ -315,7 +315,7 @@ class Webship_Shipment_Tracking {
 		$screen = wc_get_container()->get( CustomOrdersTableController::class )->custom_orders_table_usage_is_enabled()
 		? wc_get_page_screen_id( 'shop-order' )
 		: 'shop_order';
-		add_meta_box( 'webship-shipment-tracking', __( 'Shipment Tracking', 'webship-shipment-tracking' ), array( $this, 'meta_box' ), $screen, 'side', 'high' );
+		add_meta_box( 'webship-shipment-tracking', __( 'Shipment Tracking', 'xpsship-integration' ), array( $this, 'meta_box' ), $screen, 'side', 'high' );
 	}
 
 	/**
@@ -491,7 +491,7 @@ class Webship_Shipment_Tracking {
 			<p class="tracking-content">
 				<strong><?php echo esc_html( $this->get_formatted_shipping_provider( $tracking_entry['tracking_provider'] ) ? $this->get_formatted_shipping_provider( $tracking_entry['tracking_provider'] ) : $tracking_entry['custom_tracking_provider'] ); ?></strong>
 				<?php if ( strlen( $formatted_tracking_link ) > 0 ) : ?>
-					- <?php printf( '<a href="%s" target="_blank" title="' . esc_html( __( 'Click here to track your shipment', 'webship-shipment-tracking' ) ) . '">' . esc_html( __( 'Track', 'webship-shipment-tracking' ) ) . '</a>', esc_url( $formatted_tracking_link ) ); ?>
+					- <?php printf( '<a href="%s" target="_blank" title="' . esc_html( __( 'Click here to track your shipment', 'xpsship-integration' ) ) . '">' . esc_html( __( 'Track', 'xpsship-integration' ) ) . '</a>', esc_url( $formatted_tracking_link ) ); ?>
 				<?php endif; ?>
 				<br/>
 				<em><?php echo esc_html( $tracking_entry['tracking_number'] ); ?></em>
@@ -499,9 +499,9 @@ class Webship_Shipment_Tracking {
 			<p class="meta">
 				<?php
 				// translators: %s is getting the date in the sprintf.
-				echo esc_html( sprintf( __( 'Shipped on %s', 'webship-shipment-tracking' ), date_i18n( 'Y-m-d', $tracking_entry['date_shipped'] ) ) );
+				echo esc_html( sprintf( __( 'Shipped on %s', 'xpsship-integration' ), date_i18n( 'Y-m-d', $tracking_entry['date_shipped'] ) ) );
 				?>
-				<a href="#" class="delete-tracking" rel="<?php echo esc_attr( $tracking_entry['tracking_id'] ); ?>"><?php echo esc_html( __( 'Delete', 'webship-shipment-tracking' ) ); ?></a>
+				<a href="#" class="delete-tracking" rel="<?php echo esc_attr( $tracking_entry['tracking_id'] ); ?>"><?php echo esc_html( __( 'Delete', 'xpsship-integration' ) ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -655,13 +655,13 @@ enericSiteIdent=',
 
 		echo wp_kses( '</div>', $GLOBALS['allowed_html'] );
 
-		echo wp_kses( '<button class="button button-show-form" type="button">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Add Tracking Number', 'webship-shipment-tracking' ) ) . wp_kses( '</button>', $GLOBALS['allowed_html'] );
+		echo wp_kses( '<button class="button button-show-form" type="button">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Add Tracking Number', 'xpsship-integration' ) ) . wp_kses( '</button>', $GLOBALS['allowed_html'] );
 
 		echo wp_kses( '<div id="shipment-tracking-form" style="display:none;">', $GLOBALS['allowed_html'] );
 		// Providers.
-		echo wp_kses( '<p class="form-field tracking_provider_field"><label for="tracking_provider">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Provider:', 'webship-shipment-tracking' ) ) . wp_kses( '</label><br/><select id="tracking_provider" name="tracking_provider" class="chosen_select" style="width:100%;">', $GLOBALS['allowed_html'] );
+		echo wp_kses( '<p class="form-field tracking_provider_field"><label for="tracking_provider">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Provider:', 'xpsship-integration' ) ) . wp_kses( '</label><br/><select id="tracking_provider" name="tracking_provider" class="chosen_select" style="width:100%;">', $GLOBALS['allowed_html'] );
 
-		echo wp_kses( '<option value="">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Custom Provider', 'webship-shipment-tracking' ) ) . wp_kses( '</option>', $GLOBALS['allowed_html'] );
+		echo wp_kses( '<option value="">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Custom Provider', 'xpsship-integration' ) ) . wp_kses( '</option>', $GLOBALS['allowed_html'] );
 
 		$selected_provider = '';
 
@@ -703,7 +703,7 @@ enericSiteIdent=',
 		woocommerce_wp_text_input(
 			array(
 				'id'          => 'custom_tracking_provider',
-				'label'       => __( 'Provider Name:', 'webship-shipment-tracking' ),
+				'label'       => __( 'Provider Name:', 'xpsship-integration' ),
 				'placeholder' => '',
 				'description' => '',
 				'value'       => '',
@@ -713,7 +713,7 @@ enericSiteIdent=',
 		woocommerce_wp_text_input(
 			array(
 				'id'          => 'tracking_number',
-				'label'       => __( 'Tracking number:', 'webship-shipment-tracking' ),
+				'label'       => __( 'Tracking number:', 'xpsship-integration' ),
 				'placeholder' => '',
 				'description' => '',
 				'value'       => '',
@@ -723,7 +723,7 @@ enericSiteIdent=',
 		woocommerce_wp_text_input(
 			array(
 				'id'          => 'custom_tracking_link',
-				'label'       => __( 'Tracking link:', 'webship-shipment-tracking' ),
+				'label'       => __( 'Tracking link:', 'xpsship-integration' ),
 				'placeholder' => 'http://',
 				'description' => '',
 				'value'       => '',
@@ -733,18 +733,18 @@ enericSiteIdent=',
 		woocommerce_wp_text_input(
 			array(
 				'id'          => 'date_shipped',
-				'label'       => __( 'Date shipped:', 'webship-shipment-tracking' ),
-				'placeholder' => date_i18n( __( 'Y-m-d', 'webship-shipment-tracking' ), time() ),
+				'label'       => __( 'Date shipped:', 'xpsship-integration' ),
+				'placeholder' => wp_date( 'Y-m-d' ),
 				'description' => '',
 				'class'       => 'date-picker-field',
-				'value'       => date_i18n( __( 'Y-m-d', 'webship-shipment-tracking' ), current_time( 'timestamp' ) ),
+				'value'       => wp_date( 'Y-m-d' ),
 			)
 		);
 
-		echo wp_kses( '<button class="button button-primary button-save-form">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Save Tracking', 'webship-shipment-tracking' ) ) . wp_kses( '</button>', $GLOBALS['allowed_html'] );
+		echo wp_kses( '<button class="button button-primary button-save-form">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Save Tracking', 'xpsship-integration' ) ) . wp_kses( '</button>', $GLOBALS['allowed_html'] );
 
 		// Live preview.
-		echo wp_kses( '<p class="preview_tracking_link">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Preview:', 'webship-shipment-tracking' ) ) . wp_kses( ' <a href="" target="_blank">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Click here to track your shipment', 'webship-shipment-tracking' ) ) . wp_kses( '</a></p>', $GLOBALS['allowed_html'] );
+		echo wp_kses( '<p class="preview_tracking_link">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Preview:', 'xpsship-integration' ) ) . wp_kses( ' <a href="" target="_blank">', $GLOBALS['allowed_html'] ) . esc_html( __( 'Click here to track your shipment', 'xpsship-integration' ) ) . wp_kses( '</a></p>', $GLOBALS['allowed_html'] );
 
 		echo wp_kses( '</div>', $GLOBALS['allowed_html'] );
 

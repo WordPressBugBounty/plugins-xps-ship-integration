@@ -2,18 +2,18 @@
 /**
 Plugin Name: XPS Ship Integration
 Description: The XPS Ship integration, a free integration for WooCommerce merchants, is the only integration that gives you all the necessary functionality for shipping
-Version: 2.0.10
+Version: 2.0.12
 Author: XPS Ship - Descartes
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 2.4.8
-WC tested up to: 8.5.1
+WC tested up to: 10.7.0
  *
 @package xpsship-integration
  */
 
 // The requires.
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
-require_once 'class-wc-webship-integration.php';
-require_once 'class-webship-integrated-quoting-method.php';
 require_once 'class-webship-shipment-tracking.php';
 
 // If this file is called directly, abort.
@@ -322,24 +322,25 @@ function webship_woocommerce_init() {
 			function () {
 				$woocommerce_link = esc_url( 'https://woocommerce.com/' );
 				echo wp_kses(
-					<<<EOF
-					<div class="error"><p><b>The {$GLOBALS['client_info']['clientName']} plugin requires WooCommerce to be installed and activated - Download <a href="$woocommerce_link" target="_blank">WooCommerce</a> here</b></p></div>
-					EOF,
+					'<div class="error"><p><b>The ' . esc_html( $GLOBALS['client_info']['clientName'] ) . ' plugin requires WooCommerce to be installed and activated - Download <a href="' . $woocommerce_link . '" target="_blank" rel="noopener noreferrer">WooCommerce</a> here</b></p></div>',
 					$GLOBALS['allowed_html']
 				);
 			}
 		);
 
 	} else {
-		/**
-		 * Description - do not copy this.
-		 *
-		 * @param string $order_meta_query is a query.
-		 * @param string $original_order_id is the order id.
-		 * @param string $renewal_order_id is the renewal order id.
-		 */
-		if ( ! function_exists( 'do_not_copy_meta_data' ) ) {
-		function do_not_copy_meta_data( $order_meta_query, $original_order_id, $renewal_order_id ) {
+		require_once __DIR__ . '/class-wc-webship-integration.php';
+		require_once __DIR__ . '/class-webship-integrated-quoting-method.php';
+
+		if ( ! function_exists( 'xpsship_do_not_copy_meta_data' ) ) {
+			/**
+			 * Description - do not copy this.
+			 *
+			 * @param string $order_meta_query is a query.
+			 * @param string $original_order_id is the order id.
+			 * @param string $renewal_order_id is the renewal order id.
+			 */
+			function xpsship_do_not_copy_meta_data( $order_meta_query, $original_order_id, $renewal_order_id ) {
 
 				$order_meta_query .= ' AND `meta_key` NOT IN ('
 								. "'_tracking_provider', "
@@ -350,42 +351,42 @@ function webship_woocommerce_init() {
 								. "'_order_trackno', "
 								. "'_order_trackurl')";
 
-			$order_meta_query .= " AND `meta_key` NOT IN ('_wc_shipment_tracking_items')";
+				$order_meta_query .= " AND `meta_key` NOT IN ('_wc_shipment_tracking_items')";
 
-			return $order_meta_query;
-		}
-		} // end function_exists do_not_copy_meta_data
+				return $order_meta_query;
+			}
+		} // end function_exists xpsship_do_not_copy_meta_data
 
 		// This must be declared in global scope here for the shipment tracking box to display in edit orders.
 		$webship_shipment_tracking = new Webship_Shipment_Tracking();
 
-		/**
-		 * Global.
-		 * Adds a tracking entry for an order.
-		 *
-		 * @param int   $order_id The ID of the order.
-		 * @param array $params   The tracking parameters.
-		 *                        - tracking_provider        : The tracking provider.
-		 *                        - custom_tracking_provider : The custom tracking provider.
-		 *                        - custom_tracking_link     : The custom tracking link.
-		 *                        - tracking_number          : The tracking number.
-		 *                        - date_shipped             : The date shipped.
-		 */
-		if ( ! function_exists( 'add_tracking_entry' ) ) {
-		function add_tracking_entry( $order_id, $params ) {
-			$webship_shipment_tracking = new Webship_Shipment_Tracking();
+		if ( ! function_exists( 'xpsship_add_tracking_entry' ) ) {
+			/**
+			 * Global.
+			 * Adds a tracking entry for an order.
+			 *
+			 * @param int   $order_id The ID of the order.
+			 * @param array $params   The tracking parameters.
+			 *                        - tracking_provider        : The tracking provider.
+			 *                        - custom_tracking_provider : The custom tracking provider.
+			 *                        - custom_tracking_link     : The custom tracking link.
+			 *                        - tracking_number          : The tracking number.
+			 *                        - date_shipped             : The date shipped.
+			 */
+			function xpsship_add_tracking_entry( $order_id, $params ) {
+				$webship_shipment_tracking = new Webship_Shipment_Tracking();
 
-			$webship_shipment_tracking->add_tracking_entry(
-				$order_id,
-				array(
-					'tracking_provider'        => $params['tracking_provider'],
-					'custom_tracking_provider' => $params['custom_tracking_provider'],
-					'custom_tracking_link'     => $params['custom_tracking_link'],
-					'tracking_number'          => $params['tracking_number'],
-					'date_shipped'             => $params['date_shipped'],
-				)
-			);
-		}
+				$webship_shipment_tracking->add_tracking_entry(
+					$order_id,
+					array(
+						'tracking_provider'        => $params['tracking_provider'],
+						'custom_tracking_provider' => $params['custom_tracking_provider'],
+						'custom_tracking_link'     => $params['custom_tracking_link'],
+						'tracking_number'          => $params['tracking_number'],
+						'date_shipped'             => $params['date_shipped'],
+					)
+				);
+			}
 		} // end function_exists add_tracking_entry
 	}
 }
@@ -410,7 +411,7 @@ add_filter(
 function woocommerce_webship_api_plugin_action_links( $links ) {
 	$link = admin_url( 'admin.php?page=wc-settings&tab=integration&section=webship' );
 
-	return array_merge( array( '<a href="' . esc_url( $link ) . '">' . __( 'Settings', 'woocommerce-webship' ) . '</a>' ), $links );
+	return array_merge( array( '<a href="' . esc_url( $link ) . '">' . __( 'Settings', 'xpsship-integration' ) . '</a>' ), $links );
 }
 add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), 'woocommerce_webship_api_plugin_action_links' );
 
@@ -550,7 +551,7 @@ function transform_woocommerce_order_into_webship_order( $order ) {
 		if ( $product && $product->needs_shipping() ) {
 			$image_id = $product->get_image_id();
 			$image_src = wp_get_attachment_image_src( $image_id, 'shop_thumbnail' );
-			$img_url = $image_id && is_array($image_src) ? current( $image_src ) : '';
+			$img_url = $image_id && is_array( $image_src ) ? current( $image_src ) : '';
 
 			if ( method_exists( $product, 'get_id' ) ) {
 				$product_id = $product->get_id();
@@ -661,11 +662,11 @@ function woocommerce_webship_api() {
 	$carrier         = isset( $get['carrier'] ) ? $get['carrier'] : null;
 
 	if ( empty( $api_key ) ) {
-		wp_send_json_error( __( 'API Key is required', 'woocommerce-webship' ) );
+		wp_send_json_error( __( 'API Key is required', 'xpsship-integration' ) );
 	}
 
 	if ( ! hash_equals( sanitize_text_field( $api_key ), WC_Webship_Integration::$api_key ) ) {
-		wp_send_json_error( __( 'Invalid API Key', 'woocommerce-webship' ) );
+		wp_send_json_error( __( 'Invalid API Key', 'xpsship-integration' ) );
 	}
 
 	$last_request_received_from_webship_timestamp = get_option( 'last_request_received_from_webship_timestamp' );
@@ -691,12 +692,12 @@ function woocommerce_webship_api() {
 	}
 
 	if ( ! $action ) {
-		wp_send_json_error( __( "You must provide a 'action' parameter", 'woocommerce-webship' ) );
+		wp_send_json_error( __( "You must provide a 'action' parameter", 'xpsship-integration' ) );
 	} elseif ( 'getOrder' === $action ) {
 		$order_id = $get['orderId'];
 		if ( ! $order_id ) {
 			// Translators: Sub the action into the error message.
-			wp_send_json_error( esc_html( sprintf( __( "You must provide an 'orderId' parameter with action %s", 'woocommerce-webship' ), $action ) ) );
+			wp_send_json_error( esc_html( sprintf( __( "You must provide an 'orderId' parameter with action %s", 'xpsship-integration' ), $action ) ) );
 		}
 		$order = wc_get_order( $order_id );
 
@@ -714,7 +715,8 @@ function woocommerce_webship_api() {
 				array(
 					'webshipOrder'     => $webship_order,
 					'woocommerceOrder' => $order->get_data(),
-				)
+				),
+				JSON_INVALID_UTF8_SUBSTITUTE
 			);
 			exit;
 		} else {
@@ -725,12 +727,12 @@ function woocommerce_webship_api() {
 	} elseif ( 'getOrders' === $action ) {
 		if ( ! $page ) {
 			// Translators: Sub the action into the error message.
-			wp_send_json_error( esc_html( sprintf( __( "You must provide a 'page' parameter with action %s", 'woocommerce-webship' ), $action ) ) );
+			wp_send_json_error( esc_html( sprintf( __( "You must provide a 'page' parameter with action %s", 'xpsship-integration' ), $action ) ) );
 		}
 
 		if ( ! $statuses ) {
 			// Translators: Sub the action into the error message.
-			wp_send_json_error( esc_html( sprintf( __( "You must provide a comma separated string 'statuses' parameter with action %s", 'woocommerce-webship' ), $action ) ) );
+			wp_send_json_error( esc_html( sprintf( __( "You must provide a comma separated string 'statuses' parameter with action %s", 'xpsship-integration' ), $action ) ) );
 		}
 
 		$page  = isset( $page ) ? absint( $page ) : 1;
@@ -816,12 +818,13 @@ function woocommerce_webship_api() {
 				'totalOrders'        => $total_orders,
 				'statuses'           => $statuses,
 				'woocommerceVersion' => WC_VERSION,
-			)
+			),
+			JSON_INVALID_UTF8_SUBSTITUTE
 		);
 		exit;
 	} elseif ( 'updateOrder' === $action ) {
 		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
-			wp_send_json_error( __( 'updateOrder requires POST request method', 'woocommerce-webship' ) );
+			wp_send_json_error( __( 'updateOrder requires POST request method', 'xpsship-integration' ) );
 		}
 
 		$body = file_get_contents( 'php://input' );
@@ -832,17 +835,17 @@ function woocommerce_webship_api() {
 
 		if ( ! $order_id ) {
 			// Translators: Sub the action into the error message.
-			wp_send_json_error( esc_html( sprintf( __( 'You must provide a \'orderId\' parameter with action %s', 'woocommerce-webship' ), $action ) ) );
+			wp_send_json_error( esc_html( sprintf( __( 'You must provide a \'orderId\' parameter with action %s', 'xpsship-integration' ), $action ) ) );
 		}
 
 		if ( ! $tracking_number ) {
 			// Translators: Sub the action into the error message.
-			wp_send_json_error( esc_html( sprintf( __( 'You must provide a \'trackingNumber\' parameter with action %s', 'woocommerce-webship' ), $action ) ) );
+			wp_send_json_error( esc_html( sprintf( __( 'You must provide a \'trackingNumber\' parameter with action %s', 'xpsship-integration' ), $action ) ) );
 		}
 
 		if ( ! $carrier ) {
 			// Translators: Sub the action into the error message.
-			wp_send_json_error( esc_html( sprintf( __( 'You must provide a \'carrier\' parameter with action %s', 'woocommerce-webship' ), $action ) ) );
+			wp_send_json_error( esc_html( sprintf( __( 'You must provide a \'carrier\' parameter with action %s', 'xpsship-integration' ), $action ) ) );
 		}
 
 		preg_match( '/\((.*?)\)/', $order_id, $matches );
@@ -866,7 +869,7 @@ function woocommerce_webship_api() {
 
 		if ( ! $order ) {
 			// Translators: Sub the order_id into the error message.
-			wp_send_json_error( esc_html( sprintf( __( 'No order found with ID %s', 'woocommerce-webship' ), $internal_order_id ) ) );
+			wp_send_json_error( esc_html( sprintf( __( 'No order found with ID %s', 'xpsship-integration' ), $internal_order_id ) ) );
 		}
 
 		$order_fulfillment_complete = false;
@@ -980,7 +983,7 @@ function woocommerce_webship_api() {
 			}
 		} else {
 			// otherwise use built in tracking.
-			add_tracking_entry(
+			xpsship_add_tracking_entry(
 				$order_id,
 				array(
 					'tracking_provider'        => strtolower( $carrier ),
@@ -1009,7 +1012,7 @@ function woocommerce_webship_api() {
 		exit;
 	} else {
 		// Translators: Sub the action into the error message.
-		wp_send_json_error( esc_html( sprintf( __( 'No such action %s', 'woocommerce-webship' ), $action ) ) );
+		wp_send_json_error( esc_html( sprintf( __( 'No such action %s', 'xpsship-integration' ), $action ) ) );
 	}
 }
 
@@ -1022,48 +1025,48 @@ add_action( 'woocommerce_api_wc_webship', 'woocommerce_webship_api' );
 if ( is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
 	add_action( 'woocommerce_shipping_init', 'webship_integrated_quoting_shipping_method' );
 
-	/**
-	 * Description - method that knows how to quote shipping rates from Webship.
-	 * This function uses class-wc-webship-quoting-method.php.
-	 */
 	if ( ! function_exists( 'webship_integrated_quoting_shipping_method' ) ) {
-	function webship_integrated_quoting_shipping_method() {
-		add_filter( 'woocommerce_shipping_methods', 'add_webship_integrated_quoting_shipping_method' );
-		add_action( 'woocommerce_settings_saved', 'check_for_admin_fields' );
-	}
+		/**
+		 * Description - method that knows how to quote shipping rates from Webship.
+		 * This function uses class-wc-webship-quoting-method.php.
+		 */
+		function webship_integrated_quoting_shipping_method() {
+			add_filter( 'woocommerce_shipping_methods', 'add_webship_integrated_quoting_shipping_method' );
+			add_action( 'woocommerce_settings_saved', 'check_for_admin_fields' );
+		}
 	} // end function_exists webship_integrated_quoting_shipping_method
 
-	/**
-	 * Description - add webship integrated quoting shipping method.
-	 *
-	 * @param array $methods - list of methods to embed.
-	 */
 	if ( ! function_exists( 'add_webship_integrated_quoting_shipping_method' ) ) {
-	function add_webship_integrated_quoting_shipping_method( $methods ) {
-		$methods[] = 'Webship_Integrated_Quoting_Method';
-		return $methods;
-	}
+		/**
+		 * Description - add webship integrated quoting shipping method.
+		 *
+		 * @param array $methods - list of methods to embed.
+		 */
+		function add_webship_integrated_quoting_shipping_method( $methods ) {
+			$methods[] = 'Webship_Integrated_Quoting_Method';
+			return $methods;
+		}
 	} // end function_exists add_webship_integrated_quoting_shipping_method
 
-	/**
-	 * Description - check if admin fields are present.
-	 *
-	 * @param string $args - list of arguments.
-	 */
 	if ( ! function_exists( 'check_for_admin_fields' ) ) {
-	function check_for_admin_fields( $args ) {
-		$webship_integrated_quoting_method = new Webship_Integrated_Quoting_Method();
+		/**
+		 * Description - check if admin fields are present.
+		 *
+		 * @param string $args - list of arguments.
+		 */
+		function check_for_admin_fields( $args ) {
+			$webship_integrated_quoting_method = new Webship_Integrated_Quoting_Method();
 
-		$url     = (string) $GLOBALS['client_info']['clientUrl'] ? (string) $GLOBALS['client_info']['clientUrl'] : $webship_integrated_quoting_method->settings['url'];
-		$api_key = (string) $webship_integrated_quoting_method->settings['apiKey'];
+			$url     = (string) $GLOBALS['client_info']['clientUrl'] ? (string) $GLOBALS['client_info']['clientUrl'] : $webship_integrated_quoting_method->settings['url'];
+			$api_key = (string) $webship_integrated_quoting_method->settings['apiKey'];
 
-		if ( empty( $url ) ) {
-			WC_Admin_Settings::add_error( "{$GLOBALS['client_info']['clientName']} URL is a required field" );
+			if ( empty( $url ) ) {
+				WC_Admin_Settings::add_error( "{$GLOBALS['client_info']['clientName']} URL is a required field" );
+			}
+
+			if ( empty( $api_key ) ) {
+				WC_Admin_Settings::add_error( 'API Key is a required field' );
+			}
 		}
-
-		if ( empty( $api_key ) ) {
-			WC_Admin_Settings::add_error( 'API Key is a required field' );
-		}
-	}
 	} // end function_exists check_for_admin_fields
 }
